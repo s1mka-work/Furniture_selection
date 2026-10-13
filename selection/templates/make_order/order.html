@@ -1,0 +1,275 @@
+{% extends "main.html" %}
+
+{% block content %}
+<h2>Приветствуем Вас на нашем сайте! Для заказа заполните следующие поля: </h2>
+
+<form method="post">
+    {% csrf_token %}
+
+    {{ formset.management_form }}
+
+    <div class="rows-container" id="rowsContainer">
+        {% for form in formset %}
+            <div class="form-row">
+
+                <div class="field">
+                    {{ form.manufacturer }}
+                    <label>Производитель</label>
+                </div>
+
+                <div class="field">
+                    {{ form.system }}
+                    <label>Система</label>
+                </div>
+
+                <div class="field">
+                    {{ form.type }}
+                    <label>Тип</label>
+                </div>
+
+                <div class="field">
+                    {{ form.width }}
+                    <label>Ширина</label>
+                </div>
+
+                <div class="field">
+                    {{ form.height }}
+                    <label>Высота</label>
+                </div>
+
+                <div class="field">
+                    {{ form.count }}
+                    <label>Количество</label>
+                </div>
+
+                <div class="field">
+                    {{ form.additional }}
+                    <label>Доп. опции</label>
+                </div>
+
+                <button type="button" class="remove-row">×</button>
+
+            </div>
+        {% endfor %}
+
+    </div>
+
+    <div id="emptyForm" style="display: none;">
+        <div class="form-row">
+            <div class="field">
+                {{ formset.empty_form.manufacturer }}
+                <label> Производитель </label>
+            </div>
+            <div class="field">
+                {{ formset.empty_form.system }}
+                <label> Система </label>
+            </div>
+            <div class="field">
+                {{ formset.empty_form.type }}
+                <label> Тип </label>
+            </div>
+            <div class="field">
+                {{ formset.empty_form.width }}
+                <label> Ширина </label>
+            </div>
+            <div class="field">
+                {{ formset.empty_form.height }}
+                <label> Высота </label>
+            </div>
+            <div class="field">
+                {{ formset.empty_form.count }}
+                <label> Количество </label>
+            </div>
+            <div class="field">
+                {{ formset.empty_form.additional }}
+                <label> Доп. опции </label>
+            </div>
+            <button type="button" class="remove-row">×</button>
+        </div>
+
+
+    </div>
+
+    <button type="button" id="addRow">
+        + Добавить строку
+    </button>
+
+    <button type="submit">
+        Рассчитать
+    </button>
+
+</form>
+
+<style>
+
+    /* Все строки */
+    .form-row {
+        display: flex;
+        gap: 10px;
+        align-items: center;
+        margin-bottom: 15px;
+    }
+
+    /* Каждый отдельный field */
+    .field {
+        position: relative;
+        flex: 1;
+    }
+
+    /* INPUT и SELECT */
+    .field input,
+    .field select {
+        width: 100%;
+        height: 50px;
+        box-sizing: border-box;
+
+        padding: 18px 10px 5px;
+
+        border: 1px solid #aaa;
+        border-radius: 5px;
+
+        outline: none;
+        background: white;
+    }
+
+    /* LABEL */
+    .field label {
+        position: absolute;
+
+        left: 10px;
+        top: 50%;
+
+        transform: translateY(-50%);
+
+        color: #777;
+        font-size: 14px;
+
+        pointer-events: none;
+
+        transition: 0.2s;
+    }
+
+    /* INPUT получил фокус */
+    .field input:focus + label {
+        top: 0;
+        font-size: 11px;
+
+        background: white;
+        padding: 0 4px;
+
+        color: #333;
+    }
+
+    /* SELECT */
+    .field select:focus + label {
+        top: 0;
+        font-size: 11px;
+
+        background: white;
+        padding: 0 4px;
+
+        color: #333;
+    }
+
+    /* INPUT уже заполнен */
+    .field input:not(:placeholder-shown) + label {
+        top: 0;
+        font-size: 11px;
+
+        background: white;
+        padding: 0 4px;
+    }
+
+    /* Кнопка удаления */
+    .remove-row {
+        width: 30px;
+        height: 30px;
+
+        flex-shrink: 0;
+
+        border: none;
+        border-radius: 50%;
+
+        cursor: pointer;
+    }
+
+    /* Кнопка добавления */
+    #addRow {
+        margin-top: 5px;
+        padding: 8px 15px;
+
+        cursor: pointer;
+    }
+
+</style>
+
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+
+    const addRowButton = document.getElementById('addRow');
+    const rowsContainer = document.getElementById('rowsContainer');
+    const emptyForm = document.getElementById('emptyForm');
+    const totalForms = document.querySelector('[name$="-TOTAL_FORMS"]');
+
+    addRowButton.addEventListener('click', function () {
+        const formIndex = Number(totalForms.value);
+
+        let newRow = emptyForm.innerHTML.replaceAll(
+            '__prefix__',
+            formIndex
+        );
+
+        rowsContainer.insertAdjacentHTML('beforeend', newRow);
+
+        totalForms.value = formIndex + 1;
+    });
+
+});
+
+    // Удаление строки
+    rowsContainer.addEventListener('click', function (event) {
+
+    if (!event.target.classList.contains('remove-row')) {
+        return;
+    }
+
+    const row = event.target.closest('.form-row');
+    const rows = rowsContainer.querySelectorAll('.form-row');
+
+    // Не позволяем удалить последнюю строку
+    if (rows.length <= 1) {
+        return;
+    }
+
+    row.remove();
+
+    // Перенумеровываем оставшиеся формы
+    const remainingRows = rowsContainer.querySelectorAll('.form-row');
+
+    remainingRows.forEach(function (row, index) {
+
+        row.querySelectorAll('input, select, textarea').forEach(function (field) {
+
+            if (field.name) {
+                field.name = field.name.replace(
+                    /form-\d+-/,
+                    `form-${index}-`
+                );
+            }
+
+            if (field.id) {
+                field.id = field.id.replace(
+                    /form-\d+-/,
+                    `form-${index}-`
+                );
+            }
+
+        });
+    });
+
+    totalForms.value = remainingRows.length;
+});
+
+</script>
+
+{% endblock content %}

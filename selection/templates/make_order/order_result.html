@@ -1,0 +1,27 @@
+<h1>Результат расчета</h1>
+
+<p>Order {{ order }}</p>
+<p> {{ result|length }}</p>
+<p>{{ total_price }}</p>
+
+{% for res in result %}
+    <h2> Комплект {{ forloop.counter }} </h2>
+    <p> {{ res.item.width }} x {{ res.item.height }} </p>
+    <p> Тип: {{ res.item.type }}</p>
+    <h3>Фурнитура:</h3>
+    {% for component, count in res.furniture.items %}
+        <p>{{ component.article }} - {{ count }} шт.</p>
+    {% endfor %}
+
+    <p>
+        <strong>
+            Стоимость: {{ res.price }} р.
+        </strong>
+    </p>
+    <hr>
+
+{% endfor %}
+
+<h2>
+    Итого: {{ total_price }} р.
+</h2>
