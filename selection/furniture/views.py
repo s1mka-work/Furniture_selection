@@ -32,15 +32,21 @@ class OrderResult(View):
         order = get_object_or_404(Order, pk=pk)
 
         result = []
+        furniture_result = {}
         total_price = 0
 
         for item in order.items.all():
-            furniture_result = engine(item)
-            price = price_calculate(furniture_result)
+            furniture = engine(item)
+            price = price_calculate(furniture)
+            for k, v in furniture.items():
+                if k not in furniture_result:
+                    furniture_result[k] = v
+                else:
+                    furniture_result[k] += v
 
             result.append({
                 'item': item,
-                'furniture': furniture_result,
+                'furniture': furniture,
                 'price': price,
             })
 
@@ -50,5 +56,6 @@ class OrderResult(View):
             'order': order,
             'result': result,
             'total_price': total_price,
+            'furniture_result': furniture_result,
         })
 
